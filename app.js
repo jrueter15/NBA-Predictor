@@ -1,26 +1,41 @@
 console.log("App started");
 
-const gamesDiv = document.getElementById("games");
-const datePicker = document.getElementById("datePicker");
+let gamesDiv;
+let datePicker;
+let today;
 
-// Set default date to today
-const today = new Date().toISOString().split("T")[0];
-datePicker.value = today;
+document.addEventListener("DOMContentLoaded", () => {
+  gamesDiv = document.getElementById("games");
+  datePicker = document.getElementById("datePicker");
+
+  // Set default date to today
+  today = new Date()
+  const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().split("T")[0];
+
+  datePicker.value = localDate;
+
+  datePicker.addEventListener("change", loadGames);
+
+  loadGames();
+});
 
 async function loadGames() {
-  const selectedDate = datePicker.value || today;
+  const selectedDate = datePicker.value;
 
   gamesDiv.innerHTML = "<p>Loading games...</p>";
   
+  try{
   const response = await fetch(`https://api.balldontlie.io/v1/games?dates[]=${selectedDate}`, {
     headers: {
       Authorization: "967cad06-3656-41eb-b53f-05cd5cfcc252"
     }
   });
 
-  const data = await response.json();
+  if (!response.ok){
+    throw new Error(`HTTP error: ${response.status}`);
+  }
 
-  console.log(data);
+  const data = await response.json();
 
   gamesDiv.innerHTML = "";
 
@@ -29,12 +44,14 @@ async function loadGames() {
     return;
   }
 
-
   data.data.forEach(game => {
     const gameEl = document.createElement("p");
     gameEl.textContent = `${game.home_team.full_name} vs ${game.visitor_team.full_name}`;
     gamesDiv.appendChild(gameEl);
   });
-}
 
-loadGames();
+} catch (error){
+  console.error(error);
+  gamesDiv.innerHTML = "<p>Error loading games. Try again</p>";
+}
+}
