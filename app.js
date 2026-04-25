@@ -46,6 +46,12 @@ async function loadGames() {
 
   data.data.forEach(game => {
     const gameEl = document.createElement("p");
+    gameEl.style.backgroundColor = "#f2f4ff";
+    gameEl.style.padding = "10px";
+    gameEl.style.borderRadius = "8px";
+    gameEl.style.marginBottom = "10px";
+    gameEl.style.padding = "8px";
+    gameEl.style.border = "1px solid #ccc";
     gameEl.textContent = `${game.home_team.full_name} vs ${game.visitor_team.full_name}`;
     gamesDiv.appendChild(gameEl);
   });
