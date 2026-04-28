@@ -23,7 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
   loadData();
 });
 
-
 async function loadData() {
   const now = Date.now();
 
@@ -34,31 +33,33 @@ async function loadData() {
 
   // Prevents spam
   if (isLoading) return;
+
   isLoading = true;
   lastFetchTime = now;
     
   gamesDiv.innerHTML = "<p>Loading games...</p>";
-  
-  const selectedDate = datePicker.value;
 
-  console.log("Loading games...");
+  let gamesData = [];
+  let oddsData = [];
 
-  try{
-    const[gamesData, oddsData] = await Promise.all([
-      fetchGames(),
-      fetchOdds()
-    ]);
-
-    renderGames(gamesData, oddsData);
-
-  } catch(error){
-    console.error(error);
-    gamesDiv.innerHTML = "<p>Error loading data</p>";
+  try {
+    gamesData = await fetchGames();
+    console.log("Games loaded:", gamesData);
+  } catch (e) {
+    console.error("Games failed:", e);
   }
+
+  try {
+    oddsData = await fetchOdds();
+    console.log("Odds loaded:", oddsData);
+  } catch (e) {
+    console.error("Odds failed:", e);
+  }
+
+  renderGames(gamesData, oddsData);
 
   isLoading = false;
 }
-
 
 // Fetch games (keep current API for now)
 async function fetchGames() {
@@ -73,25 +74,36 @@ async function fetchGames() {
     }
   );
 
-  if (!response.ok) throw new Error("Games fetch failed");
+  if (!response.ok){
+    throw new Error("Games fetch failed");
+  } 
 
   const data = await response.json();
   return data.data;
 }
-
 
 // Fetch odds
 async function fetchOdds() {
   const response = await fetch(
-    "https://api.odds-api.io/v3/events?sport=basketball_nba&apiKey=43df2322173d88a1be8f6588fd399c7a"
+    "https://api.odds-api.io/v3/events?sport=basketball_nba",
+    {
+      headers:{
+        "x-api-key": "43df2322173d88a1be8f6588fd399c7a"
+      }
+    }
   );
 
-  if (!response.ok) throw new Error("Odds fetch failed");
+  console.log("Odds status:", response.status);
 
-  const data = await response.json();
-  return data.data;
+  const text = await response.text();
+  console.log("Raw odds response:", text);
+
+  if (!response.ok) {
+    throw new Error(`Odds fetch failed: ${response.status}`);
+  }
+
+  return JSON.parse(text).data;
 }
-
 
 // Match game to odds
 function findOdds(game, oddsData) {
@@ -100,7 +112,6 @@ function findOdds(game, oddsData) {
     o.away_team === game.visitor_team.full_name
   );
 }
-
 
 // Extract spread
 function getSpread(oddsGame) {
@@ -119,12 +130,11 @@ function getSpread(oddsGame) {
   return home?.point ?? "N/A";
 }
 
-
 // Render UI
 function renderGames(games, oddsData) {
   gamesDiv.innerHTML = "";
 
-  if (games.length === 0) {
+  if (!games || games.length === 0) {
     gamesDiv.innerHTML = "<p>No games found.</p>";
     return;
   }
