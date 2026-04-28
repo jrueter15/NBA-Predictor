@@ -1,8 +1,13 @@
 console.log("App started");
 
+// should use clearsports api - not working rn
+// currently using api
+
 let gamesDiv;
 let datePicker;
-let today;
+
+let lastFetchTime = 0;
+const COOLDOWN = 15000; // 15 seconds
 let isLoading = false;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -10,22 +15,16 @@ document.addEventListener("DOMContentLoaded", () => {
   datePicker = document.getElementById("datePicker");
 
   // Set default date to today
-  today = new Date()
+  const today = new Date();
   const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().split("T")[0];
 
   datePicker.value = localDate;
 
-  // Removing for now to try to fix 429 issue
-  //datePicker.addEventListener("change", loadGames);
-  // it works now but can't change the date
-
-  loadGames();
+  loadData();
 });
 
-let lastFetchTime = 0;
-const COOLDOWN = 15000; // 15 seconds
 
-async function loadGames() {
+async function loadData() {
   const now = Date.now();
 
   if (now - lastFetchTime < COOLDOWN) {
@@ -33,65 +32,121 @@ async function loadGames() {
     return;
   }
 
-  lastFetchTime = now;
-    
   // Prevents spam
   if (isLoading) return;
   isLoading = true;
+  lastFetchTime = now;
+    
+  gamesDiv.innerHTML = "<p>Loading games...</p>";
   
   const selectedDate = datePicker.value;
 
   console.log("Loading games...");
-  gamesDiv.innerHTML = "<p>Loading games...</p>";
-  
+
   try{
-  const response = await fetch(`https://api.balldontlie.io/v1/games?dates[]=${selectedDate}`, {
-    headers: {
-      Authorization: "967cad06-3656-41eb-b53f-05cd5cfcc252"
+    const[gamesData, oddsData] = await Promise.all([
+      fetchGames(),
+      fetchOdds()
+    ]);
+
+    renderGames(gamesData, oddsData);
+
+  } catch(error){
+    console.error(error);
+    gamesDiv.innerHTML = "<p>Error loading data</p>";
+  }
+
+  isLoading = false;
+}
+
+
+// Fetch games (keep current API for now)
+async function fetchGames() {
+  const selectedDate = datePicker.value;
+
+  const response = await fetch(
+    `https://api.balldontlie.io/v1/games?dates[]=${selectedDate}`,
+    {
+      headers: {
+        Authorization: "967cad06-3656-41eb-b53f-05cd5cfcc252"
+      }
     }
-  });
+  );
 
-  if (response.status === 429){
-    throw new Error("Rate limited");
-  }
-
-  if (!response.ok){
-    throw new Error(`HTTP error: ${response.status}`);
-  }
+  if (!response.ok) throw new Error("Games fetch failed");
 
   const data = await response.json();
+  return data.data;
+}
 
+
+// Fetch odds
+async function fetchOdds() {
+  const response = await fetch(
+    "https://api.odds-api.io/v3/events?sport=basketball_nba&apiKey=43df2322173d88a1be8f6588fd399c7a"
+  );
+
+  if (!response.ok) throw new Error("Odds fetch failed");
+
+  const data = await response.json();
+  return data.data;
+}
+
+
+// Match game to odds
+function findOdds(game, oddsData) {
+  return oddsData.find(o =>
+    o.home_team === game.home_team.full_name &&
+    o.away_team === game.visitor_team.full_name
+  );
+}
+
+
+// Extract spread
+function getSpread(oddsGame) {
+  if (!oddsGame) return "N/A";
+
+  const market = oddsGame.bookmakers?.[0]?.markets?.find(
+    m => m.key === "spreads"
+  );
+
+  if (!market) return "N/A";
+
+  const home = market.outcomes.find(
+    o => o.name === oddsGame.home_team
+  );
+
+  return home?.point ?? "N/A";
+}
+
+
+// Render UI
+function renderGames(games, oddsData) {
   gamesDiv.innerHTML = "";
 
-  if (data.data.length === 0) {
-    gamesDiv.innerHTML = "<p>No games found for this date.</p>";
+  if (games.length === 0) {
+    gamesDiv.innerHTML = "<p>No games found.</p>";
     return;
   }
 
-  data.data.forEach(game => {
-    const gameEl = document.createElement("p");
+  games.forEach(game => {
+    const oddsGame = findOdds(game, oddsData);
+    const spread = getSpread(oddsGame);
 
-    // Styling
+    const gameEl = document.createElement("div");
+
     gameEl.style.backgroundColor = "#f2f4ff";
     gameEl.style.padding = "10px";
     gameEl.style.borderRadius = "8px";
     gameEl.style.marginBottom = "10px";
-    gameEl.style.padding = "8px";
     gameEl.style.border = "1px solid #ccc";
 
-    gameEl.textContent = `${game.home_team.full_name} vs ${game.visitor_team.full_name}`;
+    gameEl.innerHTML = `
+      <strong>${game.home_team.full_name}</strong> vs 
+      <strong>${game.visitor_team.full_name}</strong>
+      <p>Spread: ${spread}</p>
+    `;
+
     gamesDiv.appendChild(gameEl);
   });
-
-} catch (error){
-  console.error(error);
-
-  if (error.message.includes("429")){
-    gamesDiv.innerHTML = "<p>Too many requests. Wait a few seconds and try again.</p>";
-  } else{
-    gamesDiv.innerHTML = "<p>Error loading games. Try again</p>";
-  }
-}
-isLoading = false;
-
 }
