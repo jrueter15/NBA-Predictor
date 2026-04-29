@@ -85,12 +85,7 @@ async function fetchGames() {
 // Fetch odds
 async function fetchOdds() {
   const response = await fetch(
-    "https://api.the-odds-api.com/v4/sports/basketball_nba/odds",
-    {
-      headers:{
-        "x-api-key": "43df2322173d88a1be8f6588fd399c7a"
-      }
-    }
+    "https://api.the-odds-api.com/v4/sports/basketball_nba/odds?regions=us&markets=spreads&apiKey=43df2322173d88a1be8f6588fd399c7a"
   );
 
   console.log("Odds status:", response.status);
