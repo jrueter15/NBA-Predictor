@@ -97,7 +97,7 @@ async function fetchOdds() {
     throw new Error(`Odds fetch failed: ${response.status}`);
   }
 
-  return JSON.parse(text).data;
+  return JSON.parse(text);
 }
 
 // Match game to odds
