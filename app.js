@@ -85,7 +85,7 @@ async function fetchGames() {
 // Fetch odds
 async function fetchOdds() {
   const response = await fetch(
-    "https://api.odds-api.io/v3/events?sport=basketball_nba",
+    "https://api.the-odds-api.com/v4/sports/basketball_nba/odds",
     {
       headers:{
         "x-api-key": "43df2322173d88a1be8f6588fd399c7a"
@@ -117,10 +117,12 @@ function findOdds(game, oddsData) {
 function getSpread(oddsGame) {
   if (!oddsGame) return "N/A";
 
-  const market = oddsGame.bookmakers?.[0]?.markets?.find(
+  const bookmaker = oddsGame.bookmakers?.[0];
+  if(!bookmaker) return "N/A";
+
+  const market = bookmaker.markets?.find(
     m => m.key === "spreads"
   );
-
   if (!market) return "N/A";
 
   const home = market.outcomes.find(
@@ -160,3 +162,22 @@ function renderGames(games, oddsData) {
     gamesDiv.appendChild(gameEl);
   });
 }
+
+async function getActiveSports() {
+  const response = await fetch("https://api.the-odds-api.com/v4/sports?apiKey=43df2322173d88a1be8f6588fd399c7a");
+  const data = await response.json();
+
+  // Filter only in-season sports
+  const activeSports = data.filter(sport => sport.active);
+
+  console.log(activeSports);
+  return activeSports;
+
+  const formattedSports = activeSports.map(sport => ({
+  key: sport.key,
+  title: sport.title
+  }));
+
+  console.log(formattedSports);
+}
+
