@@ -78,7 +78,7 @@ async function fetchGames() {
     throw new Error("Games fetch failed");
   } 
 
-  const data = await response.json();
+const data = await response.json();
   return data.data;
 }
 
@@ -109,8 +109,29 @@ function findOdds(game, oddsData) {
 }
 
 // Extract spread
-function getSpread(oddsGame) {
-  if (!oddsGame) return "N/A";
+function getAllSpreads(oddsGame) {
+  if (!oddsGame || !oddsGame.bookmakers) return [];
+
+  const results = [];
+
+  oddsGame.bookmakers.forEach(book => {
+    const market = book.markets.find(m => m.key === "spreads");
+    if (!market) return;
+
+    const home = market.outcomes.find(
+      o => o.name === oddsGame.home_team
+    );
+
+    if (!home) return;
+
+    results.push({
+      book: book.title,
+      spread: home.point,
+      price: home.price
+    });
+  })
+
+  return results;
 
   const bookmaker = oddsGame.bookmakers?.[0];
   if(!bookmaker) return "N/A";
@@ -138,7 +159,7 @@ function renderGames(games, oddsData) {
 
   games.forEach(game => {
     const oddsGame = findOdds(game, oddsData);
-    const spread = getSpread(oddsGame);
+    const spreads = getAllsSpreads(oddsGame);
 
     const gameEl = document.createElement("div");
 
@@ -148,10 +169,16 @@ function renderGames(games, oddsData) {
     gameEl.style.marginBottom = "10px";
     gameEl.style.border = "1px solid #ccc";
 
+    const spreadsHtml = spreads.map(s => `
+      <div>
+        ${s.book}: ${s.spread} (${s.price})
+      </div>
+    `).join("");
+
     gameEl.innerHTML = `
       <strong>${game.home_team.full_name}</strong> vs 
       <strong>${game.visitor_team.full_name}</strong>
-      <p>Spread: ${spread}</p>
+      <div>Spread: ${spreadsHtml}</div>
     `;
 
     gamesDiv.appendChild(gameEl);
