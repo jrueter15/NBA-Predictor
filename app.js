@@ -159,7 +159,7 @@ function renderGames(games, oddsData) {
 
   games.forEach(game => {
     const oddsGame = findOdds(game, oddsData);
-    const spreads = getAllsSpreads(oddsGame);
+    const spreads = getAllSpreads(oddsGame);
 
     const gameEl = document.createElement("div");
 
@@ -176,8 +176,8 @@ function renderGames(games, oddsData) {
     `).join("");
 
     gameEl.innerHTML = `
-      <strong>${game.home_team.full_name}</strong> vs 
-      <strong>${game.visitor_team.full_name}</strong>
+      <strong>${game.visitor_team.full_name}</strong> @
+      <strong>${game.home_team.full_name}</strong> 
       <div>Spread: ${spreadsHtml}</div>
     `;
 
