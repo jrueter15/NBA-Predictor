@@ -155,6 +155,13 @@ function renderGames(games, oddsData) {
     gameEl.style.marginBottom = "10px";
     gameEl.style.border = "1px solid #ccc";
 
+    const gameTime = new Date(game.date).toLocaleString([], {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+
     const spreadsHtml = spreads.map(s => `
       <div>
         ${s.book}: ${s.spread} (${s.price})
@@ -162,6 +169,7 @@ function renderGames(games, oddsData) {
     `).join("");
 
     gameEl.innerHTML = `
+      <div>${gameTime}</div>  
       <strong>${game.visitor_team.full_name}</strong> @
       <strong>${game.home_team.full_name}</strong> 
       <div>Spread: ${spreadsHtml}</div>
