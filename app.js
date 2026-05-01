@@ -132,20 +132,6 @@ function getAllSpreads(oddsGame) {
   })
 
   return results;
-
-  const bookmaker = oddsGame.bookmakers?.[0];
-  if(!bookmaker) return "N/A";
-
-  const market = bookmaker.markets?.find(
-    m => m.key === "spreads"
-  );
-  if (!market) return "N/A";
-
-  const home = market.outcomes.find(
-    o => o.name === oddsGame.home_team
-  );
-
-  return home?.point ?? "N/A";
 }
 
 // Render UI
