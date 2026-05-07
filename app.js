@@ -85,7 +85,7 @@ const data = await response.json();
 // Fetch odds
 async function fetchOdds() {
   const response = await fetch(
-    "https://api.the-odds-api.com/v4/sports/basketball_nba/odds?regions=us&markets=spreads&apiKey=43df2322173d88a1be8f6588fd399c7a"
+    "https://api.the-odds-api.com/v4/sports/basketball_nba/odds?regions=us&markets=spreads,totals,h2h&apiKey=43df2322173d88a1be8f6588fd399c7a"
   );
 
   console.log("Odds status:", response.status);
@@ -108,9 +108,58 @@ function findOdds(game, oddsData) {
   );
 }
 
+function getMarket(bookmaker, key) {
+  return bookmaker.markets.find(
+    market => market.key === key
+  );
+}
+
 // Extract spread
-function getAllSpreads(oddsGame) {
+function getMarketData(oddsGame) {
   if (!oddsGame || !oddsGame.bookmakers) return [];
+
+  return oddsGame.bookmakers.map(book => {
+    const spreadsMarket = getMarket(book, "spreads");
+    const totalsMarket = getMarket(book, "totals");
+    const moneylineMarket = getMarket(book, "h2h");
+
+    // Spread
+    const homeSpread = spreadsMarket?.outcomes.find(
+      o => o.name === oddsGame.home_team
+    );
+
+    // Totals
+    const over = totalsMarket?.outcomes.find(
+      o => o.name === "Over"
+    );
+
+    const under = totalsMarket?.outcomes.find(
+      o => o.name === oddsGame.home_team
+    );
+
+    // Moneylines
+    const homeML = moneylineMarket?.outcomes.find(
+      o => o.name === oddsGame.home_team
+    );
+
+    const awayML = moneylineMarket?.outcomes.find(
+      o => o.name === oddsGame.away_team
+    );
+
+    return{
+      book: book.title,
+
+      spread: homeSpread?.point,
+      spreadPrice: homeSpread?.price,
+
+      total: over?.point,
+      overPrice: over?.price,
+      underPrice: under?.price,
+
+      homeML: homeML?.price,
+      awayML: awayML?.price
+    }
+  })
 
   const results = [];
 
@@ -145,7 +194,8 @@ function renderGames(games, oddsData) {
 
   games.forEach(game => {
     const oddsGame = findOdds(game, oddsData);
-    const spreads = getAllSpreads(oddsGame);
+    
+    const odds = getMarketData(oddsGame);
 
     const gameEl = document.createElement("div");
 
@@ -162,9 +212,23 @@ function renderGames(games, oddsData) {
       minute: '2-digit'
     });
 
-    const spreadsHtml = spreads.map(s => `
-      <div>
-        ${s.book}: ${s.spread} (${s.price})
+    const oddsHtml = odds.map(o => `
+      <div style="margin-top: 6px;">
+        <strong>${o.book}: </strong><br>
+
+        Spread:
+        ${o.spread ?? "N/A"}
+        (${o.spreadPrice ?? "N/A"})<br>
+
+        Total:
+        ${o.total ?? "N/A"}
+        (O ${o.overPrice ?? "N/A"} /
+        U ${o.underPrice ?? "N/A"})<br>
+
+        ML:
+        Home ${o.homeML ?? "N/A"} /
+        Away ${o.awayML ?? "N/A"}
+
       </div>
     `).join("");
 
@@ -172,7 +236,7 @@ function renderGames(games, oddsData) {
       <div>${gameTime}</div>  
       <strong>${game.visitor_team.full_name}</strong> @
       <strong>${game.home_team.full_name}</strong> 
-      <div>Spread: ${spreadsHtml}</div>
+      <div>Spread: ${oddsHtml}</div>
     `;
 
     gamesDiv.appendChild(gameEl);
