@@ -43,28 +43,30 @@ async function loadData() {
     
   gamesDiv.innerHTML = "<p>Loading games...</p>";
 
-  let gamesData = [];
-  let oddsData = [];
-
   try {
-    gamesData = await fetchGames();
-    console.log("Games loaded:", gamesData);
-  } catch (e) {
-    console.error("Games failed:", e);
-  }
+    const oddsData = await fetchOdds();
 
-  try {
-    oddsData = await fetchOdds();
-    console.log("Odds loaded:", oddsData);
+    console.log("Odds loaded: ", oddsData);
+
+    const filteredGames = filterGamesByDate(
+      odds.Data,
+      datePicker.value
+    );
+
+    renderGames(filteredGames);
+
   } catch (e) {
     console.error("Odds failed:", e);
-  }
 
-  renderGames(gamesData, oddsData);
+    gamesDiv.innterHTML = `
+    <p>Failed to load games.</p>
+    `;
+  }
 
   isLoading = false;
 }
 
+/*
 // Fetch games (keep current API for now)
 async function fetchGames() {
   const selectedDate = datePicker.value;
@@ -85,6 +87,7 @@ async function fetchGames() {
 const data = await response.json();
   return data.data;
 }
+  */
 
 // Fetch odds
 async function fetchOdds() {
@@ -104,6 +107,7 @@ async function fetchOdds() {
   return JSON.parse(text);
 }
 
+/*
 // Match game to odds
 function findOdds(game, oddsData) {
   return oddsData.find(o =>
@@ -111,6 +115,7 @@ function findOdds(game, oddsData) {
     o.away_team === game.visitor_team.full_name
   );
 }
+  */
 
 function getMarket(bookmaker, key) {
   return bookmaker.markets.find(
@@ -166,8 +171,16 @@ function getMarketData(oddsGame) {
   })
 }
 
+// Helper for data filtering
+function filterGamesByDate(games, selectedDate){
+  return games.filter(game => {
+    const gameDate = game.commence_time.split("T")[0];
+    return gameDate === selectedDate;
+  })
+}
+
 // Render UI
-function renderGames(games, oddsData) {
+function renderGames(games) {
   gamesDiv.innerHTML = "";
 
   if (!games || games.length === 0) {
@@ -176,9 +189,8 @@ function renderGames(games, oddsData) {
   }
 
   games.forEach(game => {
-    const oddsGame = findOdds(game, oddsData);
     
-    const odds = getMarketData(oddsGame);
+    const odds = getMarketData(game);
 
     const gameEl = document.createElement("div");
 
@@ -209,8 +221,8 @@ function renderGames(games, oddsData) {
     `).join("");
 
     gameEl.innerHTML = `
-      <strong>${game.visitor_team.full_name}</strong> @
-      <strong>${game.home_team.full_name}</strong> 
+      <strong>${game.away_team}</strong> @
+      <strong>${game.home_team}</strong> 
       <div>${oddsHtml}</div>
     `;
 
