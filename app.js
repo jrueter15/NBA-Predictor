@@ -20,6 +20,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   datePicker.value = localDate;
 
+  datePicker.addEventListener("change", () => {
+    loadData();
+  });
+
   loadData();
 });
 
@@ -134,7 +138,7 @@ function getMarketData(oddsGame) {
     );
 
     const under = totalsMarket?.outcomes.find(
-      o => o.name === oddsGame.home_team
+      o => o.name === "Under"
     );
 
     // Moneylines
@@ -160,27 +164,6 @@ function getMarketData(oddsGame) {
       awayML: awayML?.price
     }
   })
-
-  const results = [];
-
-  oddsGame.bookmakers.forEach(book => {
-    const market = book.markets.find(m => m.key === "spreads");
-    if (!market) return;
-
-    const home = market.outcomes.find(
-      o => o.name === oddsGame.home_team
-    );
-
-    if (!home) return;
-
-    results.push({
-      book: book.title,
-      spread: home.point,
-      price: home.price
-    });
-  })
-
-  return results;
 }
 
 // Render UI
@@ -205,13 +188,6 @@ function renderGames(games, oddsData) {
     gameEl.style.marginBottom = "10px";
     gameEl.style.border = "1px solid #ccc";
 
-    const gameTime = new Date(game.date).toLocaleString([], {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit'
-    });
-
     const oddsHtml = odds.map(o => `
       <div style="margin-top: 6px;">
         <strong>${o.book}: </strong><br>
@@ -233,10 +209,9 @@ function renderGames(games, oddsData) {
     `).join("");
 
     gameEl.innerHTML = `
-      <div>${gameTime}</div>  
       <strong>${game.visitor_team.full_name}</strong> @
       <strong>${game.home_team.full_name}</strong> 
-      <div>Spread: ${oddsHtml}</div>
+      <div>${oddsHtml}</div>
     `;
 
     gamesDiv.appendChild(gameEl);
