@@ -1,7 +1,6 @@
 console.log("App started");
 
 // should use clearsports api - not working rn
-// currently using api
 
 let gamesDiv;
 let datePicker;
@@ -66,29 +65,6 @@ async function loadData() {
   isLoading = false;
 }
 
-/*
-// Fetch games (keep current API for now)
-async function fetchGames() {
-  const selectedDate = datePicker.value;
-
-  const response = await fetch(
-    `https://api.balldontlie.io/v1/games?dates[]=${selectedDate}`,
-    {
-      headers: {
-        Authorization: "967cad06-3656-41eb-b53f-05cd5cfcc252"
-      }
-    }
-  );
-
-  if (!response.ok){
-    throw new Error("Games fetch failed");
-  } 
-
-const data = await response.json();
-  return data.data;
-}
-  */
-
 // Fetch odds
 async function fetchOdds() {
   const response = await fetch(
@@ -106,16 +82,6 @@ async function fetchOdds() {
 
   return JSON.parse(text);
 }
-
-/*
-// Match game to odds
-function findOdds(game, oddsData) {
-  return oddsData.find(o =>
-    o.home_team === game.home_team.full_name &&
-    o.away_team === game.visitor_team.full_name
-  );
-}
-  */
 
 function getMarket(bookmaker, key) {
   return bookmaker.markets.find(
