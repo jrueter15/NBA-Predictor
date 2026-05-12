@@ -7,7 +7,7 @@ let gamesDiv;
 let datePicker;
 
 let lastFetchTime = 0;
-const COOLDOWN = 15000; // 15 seconds
+const COOLDOWN = 2000; // 2 seconds
 let isLoading = false;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -49,7 +49,7 @@ async function loadData() {
     console.log("Odds loaded: ", oddsData);
 
     const filteredGames = filterGamesByDate(
-      odds.Data,
+      oddsData,
       datePicker.value
     );
 
@@ -58,7 +58,7 @@ async function loadData() {
   } catch (e) {
     console.error("Odds failed:", e);
 
-    gamesDiv.innterHTML = `
+    gamesDiv.innerHTML = `
     <p>Failed to load games.</p>
     `;
   }
@@ -174,8 +174,12 @@ function getMarketData(oddsGame) {
 // Helper for data filtering
 function filterGamesByDate(games, selectedDate){
   return games.filter(game => {
-    const gameDate = game.commence_time.split("T")[0];
-    return gameDate === selectedDate;
+    const gameDate = new Date(game.commence_time);
+    
+    const localDate = new Date(gameDate.getTime() - gameDate.getTimezoneOffset() * 60000
+  ).toISOString().split("T")[0];
+    
+  return localDate === selectedDate;
   })
 }
 
