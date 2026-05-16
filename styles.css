@@ -1,3 +1,21 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f7f7f7;
+  padding: 20px;
+}
+
+.game-card {
+  background: #f2f4ff;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+}
+
+.bookmaker {
+  margin-top: 6px;
+}
+
 .odds-legend {
   background: #f4f4f4;
   padding: 15px;

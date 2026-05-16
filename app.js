@@ -164,14 +164,10 @@ function renderGames(games) {
 
     const gameEl = document.createElement("div");
 
-    gameEl.style.backgroundColor = "#f2f4ff";
-    gameEl.style.padding = "10px";
-    gameEl.style.borderRadius = "8px";
-    gameEl.style.marginBottom = "10px";
-    gameEl.style.border = "1px solid #ccc";
+    gameEl.className = "game-card";
 
     const oddsHtml = odds.map(o => `
-      <div style="margin-top: 6px;">
+      <div class="bookmaker">
         <strong>${o.book}: </strong><br>
 
         Spread:
@@ -217,4 +213,3 @@ async function getActiveSports() {
 
   console.log(formattedSports);
 }
-
