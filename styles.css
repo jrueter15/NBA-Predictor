@@ -23,3 +23,10 @@ body {
   border-radius: 8px;
   line-height: 1.5;
 }
+
+.insight {
+  margin: 12px 0;
+  padding: 10px;
+  background: #f4f4f4;
+  border-radius: 8px;
+}
