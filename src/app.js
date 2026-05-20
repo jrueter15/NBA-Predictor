@@ -174,6 +174,14 @@ function renderGames(games) {
     
     const odds = getMarketData(game);
 
+    const firstBook = odds[0];
+
+    const insight = generateTotalInsight({
+      homeAvgPoints: 115,
+      awayAvgPoints: 112,
+      total: firstBook?.total || 0
+    });
+
     const gameEl = document.createElement("div");
 
     gameEl.className = "game-card";
@@ -201,6 +209,19 @@ function renderGames(games) {
     gameEl.innerHTML = `
       <strong>${game.away_team}</strong> @
       <strong>${game.home_team}</strong> 
+
+      <div class="insight">
+        <p>
+          Projected Total:
+          ${insight.projectedTotal}
+        </p>
+
+        <p>
+          Lean:
+          ${insight.lean}
+        </p>
+      </div>
+
       <div>${oddsHtml}</div>
     `;
 
