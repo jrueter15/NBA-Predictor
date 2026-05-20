@@ -1,5 +1,17 @@
 console.log("App started");
 
+import {generateTotalInsight} from "./logic/insights.js";
+
+const fakeGame = {
+  homeAvgPoints: 115,
+  awayAvgPoints: 112,
+  total: 221.5
+};
+
+const insight = generateTotalInsight(fakeGame);
+
+console.log(insight);
+
 // should use clearsports api - not working rn
 
 let gamesDiv;
