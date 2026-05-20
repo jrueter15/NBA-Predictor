@@ -26,7 +26,14 @@ body {
 
 .insight {
   margin: 12px 0;
-  padding: 10px;
-  background: #f4f4f4;
+  padding: 12px;
+
+  background: #1e1e1e;
+  border-left: 4px solid #00c853;
+
   border-radius: 8px;
+
+  color: white;
+
+  font-weight: 600;
 }
