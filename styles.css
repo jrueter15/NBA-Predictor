@@ -28,12 +28,11 @@ body {
   margin: 12px 0;
   padding: 12px;
 
-  background: #1e1e1e;
-  border-left: 4px solid #00c853;
+  background: #b4b9b9;
+
+  border-left: 4px solid #4ae263;
 
   border-radius: 8px;
 
-  color: white;
-
-  font-weight: 600;
+  color: #1f2937;
 }

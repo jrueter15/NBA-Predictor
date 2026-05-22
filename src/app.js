@@ -1,6 +1,8 @@
 console.log("App started");
 
 import {generateTotalInsight} from "./logic/insights.js";
+import {getTeamGames} from "./api/statsApi.js";
+import {calculateAveragePoints} from "./logic/averages.js";
 
 const fakeGame = {
   homeAvgPoints: 115,
@@ -24,6 +26,7 @@ let isLoading = false;
 document.addEventListener("DOMContentLoaded", () => {
   gamesDiv = document.getElementById("games");
   datePicker = document.getElementById("datePicker");
+  const loadBtn = document.getElementById("loadBtn");
 
   // Set default date to today
   const today = new Date();
@@ -31,11 +34,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   datePicker.value = localDate;
 
-  datePicker.addEventListener("change", () => {
-    loadData();
-  });
+  datePicker.addEventListener("change", loadData);
 
-  loadData();
+  loadBtn.addEventListener("click",loadData);
 });
 
 async function loadData() {
@@ -246,3 +247,19 @@ async function getActiveSports() {
 
   console.log(formattedSports);
 }
+
+async function testStats() {
+
+  const games =
+    await getTeamGames(2);
+
+  const avg =
+    calculateAveragePoints(
+      games,
+      "Boston Celtics"
+    );
+
+  console.log(avg);
+}
+
+testStats();
